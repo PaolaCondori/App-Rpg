@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace AppRpgEtec.ViewModels.Personagens
 {
@@ -19,7 +20,12 @@ namespace AppRpgEtec.ViewModels.Personagens
             pService = new PersonagemService(token);
             Personagens = new ObservableCollection<Personagem>();
             _ = ObterPersonagens();
+
+            NovoPersonagemCommand = new Command(async () => { await ExibirCadastroPersonagem(); });
         }
+
+        public ICommand NovoPersonagemCommand { get; }
+
         public async Task ObterPersonagens()
         {
             try
