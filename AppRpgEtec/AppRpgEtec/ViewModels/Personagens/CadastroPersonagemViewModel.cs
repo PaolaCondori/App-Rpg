@@ -11,6 +11,7 @@ using AppRpgEtec.Services.Personagens;
 
 namespace AppRpgEtec.ViewModels.Personagens
 {
+    [QueryProperty("PersonagemSelecionadoId", "pId")]
     public class CadastroPersonagemViewModel : BaseViewModel
     {
         private PersonagemService pService;
@@ -36,43 +37,43 @@ namespace AppRpgEtec.ViewModels.Personagens
         private int vitorias;
         private int derrotas;
 
-        public int Id 
-        { 
+        public int Id
+        {
             get => id;
-            set 
+            set
             {
                 id = value;
                 OnPropertyChanged();
             }
         }
-        public string Nome 
-        { 
-            get => nome; 
-            set 
+        public string Nome
+        {
+            get => nome;
+            set
             {
                 nome = value;
                 OnPropertyChanged();
-            } 
+            }
         }
-        public int PontosVida 
+        public int PontosVida
         {
-            get => pontosVida; 
-            set 
+            get => pontosVida;
+            set
             {
                 pontosVida = value;
                 OnPropertyChanged();
-            } 
+            }
         }
-        public int Forca   
+        public int Forca
         {
             get => forca;
             set
             {
                 forca = value;
-                OnPropertyChanged();    
+                OnPropertyChanged();
             }
         }
-        public int Defesa 
+        public int Defesa
         {
             get => defesa;
             set
@@ -81,14 +82,14 @@ namespace AppRpgEtec.ViewModels.Personagens
                 OnPropertyChanged();
             }
         }
-        public int Inteligencia 
-        { 
+        public int Inteligencia
+        {
             get => inteligencia;
-            set 
-            { 
+            set
+            {
                 inteligencia = value;
                 OnPropertyChanged();
-            } 
+            }
         }
         public int Disputas
         {
@@ -121,12 +122,12 @@ namespace AppRpgEtec.ViewModels.Personagens
 
         private ObservableCollection<TipoClasse> listaTipoClasse;
 
-        public ObservableCollection<TipoClasse> ListaTiposClasse 
+        public ObservableCollection<TipoClasse> ListaTiposClasse
         {
-            get {  return listaTipoClasse; }
-            set 
-            { 
-                if(value != null)
+            get { return listaTipoClasse; }
+            set
+            {
+                if (value != null)
                 {
                     listaTipoClasse = value;
                     OnPropertyChanged();
@@ -144,7 +145,8 @@ namespace AppRpgEtec.ViewModels.Personagens
                 ListaTiposClasse.Add(new TipoClasse() { Id = 3, Descricao = "Clerigo" });
                 OnPropertyChanged(nameof(ListaTiposClasse));
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 await Application.Current.MainPage
                     .DisplayAlert("Ops", ex.Message + " Detalhes: " + ex.InnerException, "Ok");
             }
@@ -156,8 +158,8 @@ namespace AppRpgEtec.ViewModels.Personagens
         {
             get { return tipoClasseSelecionado; }
             set
-            { 
-                if(value != null)
+            {
+                if (value != null)
                 {
                     tipoClasseSelecionado = value;
                     OnPropertyChanged();
@@ -175,22 +177,64 @@ namespace AppRpgEtec.ViewModels.Personagens
                     PontosVida = this.pontosVida,
                     Defesa = this.defesa,
                     Derrotas = this.derrotas,
-                    Disputas = this.disputas,  
+                    Disputas = this.disputas,
                     Forca = this.forca,
                     Inteligencia = this.inteligencia,
                     Vitorias = this.vitorias,
                     Id = this.id,
                     Classe = (ClasseEnum)tipoClasseSelecionado.Id
                 };
-                if(model.Id == 0)
+                if (model.Id == 0)
                     await pService.PostPersonagemAsync(model);
+                else
+                    await pService.PutPersonagemAsync(model);
 
                 await Application.Current.MainPage
-                    .DisplayAlert("Mensagem", "Dados salvos com sucesso!", "Ok");
+                        .DisplayAlert("Mensagem", "Dados salvos com sucesso!", "Ok");
 
                 await Shell.Current.GoToAsync("..");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage
+                    .DisplayAlert("Ops", ex.Message + " Detalhes: " + ex.InnerException, "Ok");
+            }
+        }
+
+        private string personagemSelecionadoId;
+
+        public string PersonagemSelecionadoId
+        {
+            set
+            {
+                if (value != null)
+                {
+                    personagemSelecionadoId = Uri.UnescapeDataString(value);
+                    CarregarPersonagem();
+                }
+            }
+        }
+        public async void CarregarPersonagem()
+        {
+            try
+            {
+                Personagem p = await pService
+                    .GetPersonagemAsync(int.Parse(personagemSelecionadoId));
+
+                this.Nome = p.Nome;
+                this.PontosVida = p.PontosVida;
+                this.Defesa = p.Defesa;
+                this.Derrotas = p.Derrotas;
+                this.Disputas = p.Disputas;
+                this.Forca = p.Forca;
+                this.Inteligencia = p.Inteligencia;
+                this.Vitorias = p.Vitorias;
+                this.Id = this.Id;
+
+                tipoClasseSelecionado = this.ListaTiposClasse
+                    .FirstOrDefault(tClasse => tClasse.Id == (int)p.Classe);
+            }
+            catch (Exception ex)
             {
                 await Application.Current.MainPage
                     .DisplayAlert("Ops", ex.Message + " Detalhes: " + ex.InnerException, "Ok");
